@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useTheme } from "next-themes"
 import dynamic from "next/dynamic"
 
 const Monaco = dynamic(() => import("@monaco-editor/react"), { ssr: false })
@@ -12,13 +12,15 @@ interface MonacoEditorProps {
   theme?: string
 }
 
-export function MonacoEditor({ value, onChange, language = "typescript", theme = "vs-dark" }: MonacoEditorProps) {
+export function MonacoEditor({ value, onChange, language = "typescript", theme }: MonacoEditorProps) {
+  const { theme: appTheme } = useTheme()
+  const resolvedTheme = theme || (appTheme === "light" ? "vs-light" : "vs-dark")
   return (
-    <div className="w-full rounded-lg overflow-hidden border border-gray-700 shadow-lg bg-gradient-to-br from-gray-900/80 to-blue-900/60">
+    <div className={`w-full rounded-lg overflow-hidden border ${appTheme === "light" ? "border-gray-300 bg-white" : "border-gray-700 bg-neutral-950"}`}>
       <Monaco
         height="400px"
         language={language}
-        theme={theme}
+        theme={resolvedTheme}
         value={value}
         onChange={(val) => onChange(val || "")}
         options={{

@@ -46,26 +46,28 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
         {/* Centered Card */}
         <div className="relative z-10 w-full max-w-md mx-auto flex-1 flex flex-col justify-center items-center">
-          <Card className="w-full bg-neutral-950/95 border border-white/10 shadow-none rounded-xl p-8 flex flex-col items-center gap-6">
+          <Card className="w-full shadow-none rounded-xl p-8 flex flex-col items-center gap-6 border transition-colors duration-200
+            bg-white text-black border-gray-200
+            dark:bg-neutral-950 dark:text-white dark:border-white/10">
             {/* Logo */}
             <Image
               src="/logo-512.png"
               alt="PrepR Logo"
-              width={64}
-              height={64}
+              width={120}
+              height={120}
               className="object-contain mb-2"
             />
             {/* Title & Subtitle */}
-            <CardTitle className="text-3xl font-bold text-white text-center">PrepR</CardTitle>
-            <div className="text-sm text-white/60 font-medium text-center mb-2">AI Coding Interview Arena</div>
+            <CardTitle className="text-3xl font-bold text-center dark:text-white text-black">PrepR</CardTitle>
+            <div className="text-sm font-medium text-center mb-2 dark:text-white/60 text-gray-600">AI Coding Interview Arena</div>
             {/* Typing Animation */}
-            <div className="text-xl md:text-2xl font-semibold text-white min-h-[2.5rem] flex items-center justify-center w-full">
+            <div className="text-xl md:text-2xl font-semibold min-h-[2.5rem] flex items-center justify-center w-full dark:text-white text-black">
               <TypingAnimation
                 texts={typingTexts}
                 speed={80}
                 deleteSpeed={40}
                 pauseTime={1500}
-                className="text-white"
+                className="dark:text-white text-black"
               />
             </div>
             {/* Google Login Button */}
@@ -73,7 +75,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               onClick={handleGoogleLogin}
               disabled={isLoading}
               size="lg"
-              className="w-full h-12 bg-black hover:bg-neutral-900 text-white border border-white/10 shadow-none text-lg font-semibold flex items-center justify-center gap-3"
+              className="w-full h-12 bg-black hover:bg-neutral-900 text-white border border-white/10 shadow-none text-lg font-semibold flex items-center justify-center gap-3 dark:bg-black dark:text-white dark:border-white/10 bg-gray-900 text-white border-gray-200 hover:bg-gray-800 transition-colors duration-200"
             >
               {isLoading ? (
                 <div className="flex items-center gap-3">
@@ -92,20 +94,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             {/* About the Creator Button */}
             <button
               onClick={() => setShowCreatorModal(true)}
-              className="mt-2 px-3 py-1 text-xs font-semibold rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="mt-2 px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 hover:bg-gray-200 text-black dark:bg-white/10 dark:hover:bg-white/20 dark:text-white transition-colors"
             >
               About the Creator
             </button>
           </Card>
         </div>
         {/* Crafted by Section */}
-        <div className="flex flex-col items-center gap-2 p-4 mt-8 mb-4 bg-black/80 border border-white/10 rounded-xl max-w-md mx-auto z-20">
-          <span className="text-white/70 font-medium text-sm">Crafted by Saswata Kumar Dash for Allin</span>
+        <div className="flex flex-col items-center gap-2 p-4 mt-8 mb-4 bg-gray-100 border border-gray-200 rounded-xl max-w-md mx-auto z-20 dark:bg-black/80 dark:border-white/10">
+          <span className="font-medium text-sm text-gray-700 dark:text-white/70">Crafted by Saswata Kumar Dash</span>
           <a
             href="https://skds.site"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-blue-400 hover:underline"
+            className="text-xs text-blue-600 hover:underline dark:text-blue-400"
             tabIndex={0}
           >
             Visit Portfolio

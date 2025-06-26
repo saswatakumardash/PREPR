@@ -43,8 +43,8 @@ export function Header({ onShowCreator, onLogout }: HeaderProps) {
         <Image
           src="/logo-512.png"
           alt="PrepR Logo"
-          width={48}
-          height={48}
+          width={80}
+          height={80}
           className="object-contain"
         />
         <div className="flex flex-col">

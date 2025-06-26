@@ -12,8 +12,8 @@ export function Footer() {
           <Image
             src="/logo-512.png"
             alt="PrepR Logo"
-            width={40}
-            height={40}
+            width={120}
+            height={120}
             className="object-contain"
           />
           <div>
