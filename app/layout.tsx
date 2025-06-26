@@ -3,9 +3,9 @@ import './globals.css'
 import NextAuthSessionProvider from './session-provider'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'PrepR - AI Coding Interview Arena',
+  description: 'Master your coding interviews with intelligent feedback and comprehensive practice sessions',
+  generator: 'PrepR',
 }
 
 export default function RootLayout({
