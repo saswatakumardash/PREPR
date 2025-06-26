@@ -61,16 +61,20 @@ export default function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="prepr-ui-theme">
-      <div className="min-h-screen bg-black text-foreground flex flex-col" style={{ fontFamily: 'Inter, system-ui, Segoe UI, sans-serif', fontSize: '1.12rem', letterSpacing: '-0.01em' }}>
+      <div className="min-h-screen bg-black text-white flex flex-col relative overflow-hidden" style={{ fontFamily: 'Inter, system-ui, Segoe UI, sans-serif', fontSize: '1.12rem', letterSpacing: '-0.01em' }}>
+        {/* Dotted SVG background and animated dots */}
+        <div className="dotted-bg" />
+        <div className="animated-dot dot1" />
+        <div className="animated-dot dot2" />
+        <div className="animated-dot dot3" />
         {/* Header */}
         <Header onShowCreator={() => setShowCreatorModal(true)} onLogout={() => signOut({ callbackUrl: "/" })} />
-
         {/* Main Content */}
         <main className="flex-1">
-          <div className="container mx-auto px-4 py-12">
+          <div className="container mx-auto px-2 py-8 max-w-3xl">
             <Tabs defaultValue="coding" className="w-full">
-              {/* Enhanced Tab Navigation */}
-              <div className="mb-10">
+              {/* Tab Navigation */}
+              <div className="mb-6">
                 <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-neutral-900 p-1 rounded-xl h-auto border border-neutral-800">
                   <TabsTrigger
                     value="coding"
@@ -110,29 +114,25 @@ export default function App() {
                   </TabsTrigger>
                 </TabsList>
               </div>
-
-              {/* Tab Content with Page-like Styling */}
+              {/* Tab Content with minimal styling */}
               <div className="animate-in fade-in-50 duration-300">
                 <TabsContent value="coding" className="mt-0">
-                  <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-8 shadow-lg">
+                  <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 shadow-none">
                     <CodingRound onSessionUpdate={handleCodingSessionUpdate} />
                   </div>
                 </TabsContent>
-
                 <TabsContent value="hr" className="mt-0">
-                  <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-8 shadow-lg">
+                  <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 shadow-none">
                     <HRRound onSessionUpdate={handleHRSessionUpdate} />
                   </div>
                 </TabsContent>
-
                 <TabsContent value="flashcards" className="mt-0">
-                  <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-8 shadow-lg">
+                  <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 shadow-none">
                     <Flashcards />
                   </div>
                 </TabsContent>
-
                 <TabsContent value="summary" className="mt-0">
-                  <div className="bg-neutral-950 border border-neutral-800 rounded-xl p-8 shadow-lg">
+                  <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 shadow-none">
                     <SessionSummary sessionData={sessionData} />
                   </div>
                 </TabsContent>
@@ -140,10 +140,8 @@ export default function App() {
             </Tabs>
           </div>
         </main>
-
         {/* Footer */}
         <Footer />
-
         {/* Creator Modal */}
         <CreatorModal open={showCreatorModal} onOpenChange={setShowCreatorModal} />
       </div>
