@@ -38,7 +38,7 @@ function LiveClock() {
 export function Header({ onShowCreator, onLogout }: HeaderProps) {
   return (
     <header className="w-full border-b border-white/10 bg-black/95 py-4 px-0 flex items-center justify-between relative z-10">
-      {/* Mobile: Only logo and PrepR text, centered */}
+      {/* Mobile: Only logo, PrepR text, and clock, centered */}
       <div className="flex items-center justify-center w-full sm:hidden">
         <Image
           src="/logo-512.png"
@@ -48,6 +48,7 @@ export function Header({ onShowCreator, onLogout }: HeaderProps) {
           className="object-contain"
         />
         <span className="ml-3 text-2xl font-bold text-white leading-tight">PrepR</span>
+        <span className="ml-2 text-xs font-mono text-white/70"><LiveClock /></span>
         <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
           {onLogout && (
