@@ -16,7 +16,7 @@ export function MonacoEditor({ value, onChange, language = "typescript", theme }
   const { theme: appTheme } = useTheme()
   const resolvedTheme = theme || (appTheme === "light" ? "vs-light" : "vs-dark")
   return (
-    <div className={`w-full rounded-lg overflow-hidden border ${appTheme === "light" ? "border-gray-300 bg-white" : "border-gray-700 bg-neutral-950"}`}>
+    <div className={`w-full rounded-lg overflow-hidden border max-w-full overflow-x-auto overflow-y-auto ${appTheme === "light" ? "border-gray-300 bg-white" : "border-gray-700 bg-neutral-950"}`}>
       <Monaco
         height="400px"
         language={language}

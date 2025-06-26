@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TypingAnimation } from "../typing-animation"
@@ -12,6 +12,29 @@ import { ThemeToggle } from "@/components/theme-toggle"
 
 interface LoginPageProps {
   onLogin?: () => void
+}
+
+function LiveClock() {
+  const [time, setTime] = useState("")
+  useEffect(() => {
+    const update = () => {
+      const now = new Date()
+      const options = {
+        hour: "2-digit" as const,
+        minute: "2-digit" as const,
+        second: "2-digit" as const,
+        hour12: false,
+        timeZoneName: "short" as const
+      }
+      let t = now.toLocaleTimeString("en-IN", options)
+      t = t.replace(/ GMT.*/, " IST")
+      setTime(t)
+    }
+    update()
+    const interval = setInterval(update, 1000)
+    return () => clearInterval(interval)
+  }, [])
+  return <span className="text-xs md:text-sm font-mono tracking-widest px-2 text-black dark:text-white/70">{time}</span>
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
@@ -34,15 +57,16 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="prepr-ui-theme">
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative" style={{ fontFamily: 'Inter, system-ui, Segoe UI, sans-serif', fontSize: '1.08rem' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-white dark:bg-black transition-colors duration-200" style={{ fontFamily: 'Inter, system-ui, Segoe UI, sans-serif', fontSize: '1.08rem' }}>
         {/* Dotted SVG background and animated dots */}
         <div className="dotted-bg" />
         <div className="animated-dot dot1" />
         <div className="animated-dot dot2" />
         <div className="animated-dot dot3" />
-        {/* Theme Toggle Button */}
-        <div className="absolute top-6 right-6 z-30">
+        {/* Theme Toggle & Clock */}
+        <div className="absolute top-6 right-6 z-30 flex flex-col items-end gap-2">
           <ThemeToggle />
+          <LiveClock />
         </div>
         {/* Centered Card */}
         <div className="relative z-10 w-full max-w-md mx-auto flex-1 flex flex-col justify-center items-center">
