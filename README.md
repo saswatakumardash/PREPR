@@ -1,9 +1,13 @@
 # PrepR – AI Coding Interview Arena
 
-![PrepR Banner](./public/logo-512.png)
+
+
+https://github.com/user-attachments/assets/25fa228b-7452-40bb-9d49-7caf680b09b6
+
+
 
 > **PrepR** is a modern, AI-powered coding interview platform to help you master technical interviews with real-time feedback, HR prep, and interactive flashcards. Built for developers, by a developer.
-
+> **WEBSITE LINK** prepr.skds.site
 ---
 
 ## 🚀 Features
@@ -32,34 +36,12 @@
 
 ## 📸 Screenshots
 
-| Login Page (Dark) | Main Page (Light) |
-|------------------|------------------|
-| ![Login Dark](./screenshots/login-dark.png) | ![Main Light](./screenshots/main-light.png) |
+| Main Page (Dark) | Main Page (Light) |
+-------|------------------|
+| !![main-dark](https://github.com/user-attachments/assets/676ac87c-1699-4e71-89fb-047610cc034b) | ![Screenshot 2025-06-27 at 05 23 08](https://github.com/user-attachments/assets/e66a73ac-4358-4f8b-9620-6da14df0b618)
+ |
 
-> _Add your own screenshots to the `/screenshots` folder and update the links above!_
 
----
-
-## ⚡ Getting Started
-
-1. **Clone the repo:**
-   ```bash
-   git clone https://github.com/saswatakumardash/PREPR.git
-   cd PREPR
-   ```
-2. **Install dependencies:**
-   ```bash
-   npm install
-   # or
-   pnpm install
-   ```
-3. **Set up environment variables:**
-   - Copy `.env.example` to `.env.local` and fill in your Google OAuth and Gemini API keys.
-4. **Run the dev server:**
-   ```bash
-   npm run dev
-   ```
-5. **Open [http://localhost:3000](http://localhost:3000)**
 
 ---
 
