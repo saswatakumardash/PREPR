@@ -1,4 +1,4 @@
-# PrepR – AI Coding Interview Arena
+# [PrepR – AI Coding Interview Arena](https://prepr.skds.site)
 
 
 
@@ -7,7 +7,7 @@ https://github.com/user-attachments/assets/25fa228b-7452-40bb-9d49-7caf680b09b6
 
 
 > **PrepR** is a modern, AI-powered coding interview platform to help you master technical interviews with real-time feedback, HR prep, and interactive flashcards. Built for developers, by a developer.
-> **WEBSITE LINK** prepr.skds.site
+> [**WEBSITE LINK**](prepr.skds.site)
 ---
 
 ## 🚀 Features
