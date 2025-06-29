@@ -15,15 +15,21 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
     const fetchCount = async () => {
       try {
         setIsLoading(true)
+        console.log('Fetching visitor count...')
         
         // Get current count from Supabase
         const response = await fetch('/api/visitor-count', {
           method: 'GET',
         })
 
+        console.log('GET response status:', response.status)
+
         if (response.ok) {
           const data = await response.json()
+          console.log('GET response data:', data)
           setCount(data.count || 0)
+        } else {
+          console.error('GET request failed:', response.status)
         }
       } catch (error) {
         console.error('Error fetching visitor count:', error)
@@ -37,6 +43,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
 
   const incrementCount = async () => {
     try {
+      console.log('Incrementing visitor count...')
       const response = await fetch('/api/visitor-count', {
         method: 'POST',
         headers: {
@@ -44,9 +51,16 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
         },
       })
 
+      console.log('POST response status:', response.status)
+
       if (response.ok) {
         const data = await response.json()
+        console.log('POST response data:', data)
         setCount(data.count || 0)
+      } else {
+        console.error('POST request failed:', response.status)
+        const errorData = await response.json()
+        console.error('Error data:', errorData)
       }
     } catch (error) {
       console.error('Error incrementing visitor count:', error)
@@ -56,11 +70,17 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
   // Increment on first load only
   useEffect(() => {
     const hasIncremented = sessionStorage.getItem('visitor_incremented')
+    console.log('Has incremented before:', hasIncremented)
     if (!hasIncremented) {
+      console.log('First visit, incrementing count...')
       incrementCount()
       sessionStorage.setItem('visitor_incremented', 'true')
+    } else {
+      console.log('Returning visitor, not incrementing')
     }
   }, [])
+
+  console.log('Current count state:', count)
 
   return (
     <div className={`flex items-center gap-2 text-xs font-medium ${className}`}>
