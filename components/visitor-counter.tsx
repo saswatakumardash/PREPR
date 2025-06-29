@@ -63,13 +63,8 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
     return () => clearTimeout(timer)
   }, [])
 
-  if (error) {
-    return (
-      <div className={`flex items-center gap-2 text-xs text-red-500 dark:text-red-400 ${className}`}>
-        <Eye className="w-3 h-3" />
-        <span>Visitor count unavailable</span>
-      </div>
-    )
+  if (error || count === null) {
+    return null;
   }
 
   return (
@@ -84,11 +79,6 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
       {isLoading && (
         <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin ml-1" />
       )}
-      {note && (
-        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-          ({note})
-        </span>
-      )}
     </div>
   )
-} 
+}
