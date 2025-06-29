@@ -8,19 +8,15 @@ interface VisitorCounterProps {
 }
 
 export function VisitorCounter({ className = "" }: VisitorCounterProps) {
-  const [count, setCount] = useState<number | null>(null)
-  const [activeViewers, setActiveViewers] = useState<number | null>(null)
+  const [count, setCount] = useState<number>(0)
+  const [activeViewers, setActiveViewers] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isNewVisitor, setIsNewVisitor] = useState<boolean | null>(null)
+  const [isNewVisitor, setIsNewVisitor] = useState<boolean>(false)
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null)
   const hasTrackedVisit = useRef<boolean>(false)
 
   useEffect(() => {
-    // Show a fallback count immediately for better UX
-    setCount(0)
-    setActiveViewers(0)
-    
     const trackVisit = async () => {
       try {
         setIsLoading(true)
@@ -39,10 +35,19 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
           
           if (response.ok) {
             const data = await response.json()
-            setCount(data.count)
+            setCount(data.count || 0)
             setActiveViewers(data.activeViewers || 0)
             setIsNewVisitor(false)
-            startHeartbeat()
+          } else {
+            // If GET fails, try to get count from fallback
+            const fallbackResponse = await fetch('/api/visitor-count-fallback', {
+              method: 'GET',
+            })
+            if (fallbackResponse.ok) {
+              const fallbackData = await fallbackResponse.json()
+              setCount(fallbackData.count || 0)
+              setActiveViewers(0)
+            }
           }
         } else {
           // First visit in this session, increment the count
@@ -66,23 +71,42 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
 
           if (incrementResponse.ok) {
             const data = await incrementResponse.json()
-            setCount(data.count)
+            setCount(data.count || 0)
             setActiveViewers(data.activeViewers || 0)
             setIsNewVisitor(true)
             
             // Mark as tracked for this browser session
             sessionStorage.setItem(sessionKey, 'true')
             hasTrackedVisit.current = true
-            
-            // Start heartbeat for active viewer tracking
-            startHeartbeat()
           } else {
-            setError('Failed to load visitor count')
+            // If increment fails, at least try to get current count
+            const getResponse = await fetch('/api/visitor-count', {
+              method: 'GET',
+            })
+            if (getResponse.ok) {
+              const data = await getResponse.json()
+              setCount(data.count || 0)
+              setActiveViewers(data.activeViewers || 0)
+            }
+            setError('Failed to increment visitor count')
           }
         }
       } catch (err) {
         console.error('Error tracking visit:', err)
         setError('Failed to load visitor count')
+        // Even on error, try to get current count
+        try {
+          const response = await fetch('/api/visitor-count', {
+            method: 'GET',
+          })
+          if (response.ok) {
+            const data = await response.json()
+            setCount(data.count || 0)
+            setActiveViewers(data.activeViewers || 0)
+          }
+        } catch (fallbackErr) {
+          console.error('Fallback error:', fallbackErr)
+        }
       } finally {
         setIsLoading(false)
       }
@@ -152,10 +176,6 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
     }, 30000) // 30 seconds
   }
 
-  if (error || count === null) {
-    return null;
-  }
-
   return (
     <div className={`flex items-center gap-2 text-xs font-medium ${className}`}>
       <div className="flex items-center gap-1">
@@ -163,10 +183,10 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
         <span className="text-gray-700 dark:text-white/70">Visitors:</span>
       </div>
       <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
-        {count?.toLocaleString() || '0'}
+        {count.toLocaleString()}
       </span>
       
-      {activeViewers !== null && activeViewers > 0 && (
+      {activeViewers > 0 && (
         <>
           <div className="flex items-center gap-1 ml-2">
             <Eye className="w-3 h-3 text-green-600 dark:text-green-400" />
