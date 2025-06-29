@@ -11,6 +11,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
   const [count, setCount] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [note, setNote] = useState<string | null>(null)
 
   useEffect(() => {
     // Show a fallback count immediately for better UX
@@ -19,26 +20,35 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
     const trackVisit = async () => {
       try {
         setIsLoading(true)
-        // First, increment the visitor count
-        const incrementResponse = await fetch('/api/visitor-count', {
+        setError(null)
+        
+        // Try the robust Supabase API first, fallback to simple counter
+        let incrementResponse = await fetch('/api/visitor-count', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
         })
 
+        // If Supabase API fails, use fallback
+        if (!incrementResponse.ok) {
+          console.log('Supabase API not available, using fallback')
+          incrementResponse = await fetch('/api/visitor-count-fallback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+        }
+
         if (incrementResponse.ok) {
           const data = await incrementResponse.json()
           setCount(data.count)
-        } else {
-          // If increment fails, try to get current count
-          const getResponse = await fetch('/api/visitor-count')
-          if (getResponse.ok) {
-            const data = await getResponse.json()
-            setCount(data.count)
-          } else {
-            setError('Failed to load visitor count')
+          if (data.note) {
+            setNote(data.note)
           }
+        } else {
+          setError('Failed to load visitor count')
         }
       } catch (err) {
         console.error('Error tracking visit:', err)
@@ -73,6 +83,11 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
       </span>
       {isLoading && (
         <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin ml-1" />
+      )}
+      {note && (
+        <span className="text-xs text-gray-500 dark:text-gray-400 ml-1">
+          ({note})
+        </span>
       )}
     </div>
   )
