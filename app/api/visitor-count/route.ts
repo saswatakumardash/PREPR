@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 const VISITOR_COUNT_TABLE = 'visitor_counts'
-const ACTIVE_VIEWERS_TABLE = 'active_viewers'
 const SITE_ID = 'main-site' // Unique identifier for your site
 
 // Initialize visitor count in database if it doesn't exist
@@ -39,62 +38,24 @@ async function initializeVisitorCount() {
   }
 }
 
-// Get active viewers count
-async function getActiveViewers() {
-  try {
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
-    
-    const { data, error } = await supabase
-      .from(ACTIVE_VIEWERS_TABLE)
-      .select('*')
-      .eq('site_id', SITE_ID)
-      .gte('last_seen', fiveMinutesAgo)
-
-    if (error) {
-      console.error('Error fetching active viewers:', error)
-      return 0
-    }
-
-    return data?.length || 0
-  } catch (error) {
-    console.error('Error in getActiveViewers:', error)
-    return 0
-  }
-}
-
 export async function GET() {
   try {
-    const [totalCount, activeViewers] = await Promise.all([
-      initializeVisitorCount(),
-      getActiveViewers()
-    ])
+    const count = await initializeVisitorCount()
     
     return NextResponse.json({ 
-      count: totalCount,
-      activeViewers,
+      count: count,
       persistent: true,
       unlimited: true
     })
   } catch (error) {
     console.error('Error reading visitor count:', error)
-    return NextResponse.json({ count: 0, activeViewers: 0, error: 'Database error' }, { status: 500 })
+    return NextResponse.json({ count: 0, error: 'Database error' }, { status: 500 })
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const body = await request.json()
-    const { action } = body
-
-    if (action === 'heartbeat') {
-      // Update active viewer heartbeat - this happens for all visitors
-      const sessionId = generateSessionId()
-      await updateActiveViewer(sessionId)
-      const activeViewers = await getActiveViewers()
-      return NextResponse.json({ activeViewers })
-    }
-
-    // Regular visit - increment the count (only for new daily visitors)
+    // Use PostgreSQL's atomic increment to handle concurrent requests
     const { data, error } = await supabase.rpc('increment_visitor_count', {
       site_id_param: SITE_ID
     })
@@ -105,59 +66,15 @@ export async function POST(request: NextRequest) {
       return await fallbackIncrement()
     }
 
-    // Add to active viewers
-    const sessionId = generateSessionId()
-    await addActiveViewer(sessionId)
-
-    const activeViewers = await getActiveViewers()
-
     return NextResponse.json({ 
       count: data || 0,
-      activeViewers,
       persistent: true,
       unlimited: true
     })
   } catch (error) {
-    console.error('Error handling visitor count:', error)
+    console.error('Error incrementing visitor count:', error)
     return await fallbackIncrement()
   }
-}
-
-// Add new active viewer
-async function addActiveViewer(sessionId: string) {
-  try {
-    await supabase
-      .from(ACTIVE_VIEWERS_TABLE)
-      .upsert({
-        session_id: sessionId,
-        site_id: SITE_ID,
-        last_seen: new Date().toISOString(),
-        created_at: new Date().toISOString()
-      })
-  } catch (error) {
-    console.error('Error adding active viewer:', error)
-  }
-}
-
-// Update active viewer heartbeat
-async function updateActiveViewer(sessionId: string) {
-  try {
-    await supabase
-      .from(ACTIVE_VIEWERS_TABLE)
-      .upsert({
-        session_id: sessionId,
-        site_id: SITE_ID,
-        last_seen: new Date().toISOString(),
-        created_at: new Date().toISOString()
-      })
-  } catch (error) {
-    console.error('Error updating active viewer:', error)
-  }
-}
-
-// Generate a unique session ID
-function generateSessionId(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
 // Fallback method if RPC function is not available
