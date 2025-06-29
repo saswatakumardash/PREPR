@@ -1,85 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { kv } from '@vercel/kv'
+import { NextResponse } from 'next/server'
 
-const VISITOR_COUNT_TABLE = 'visitor_counts'
-const SITE_ID = 'main-site' // Unique identifier for your site
-
-// Initialize visitor count in database if it doesn't exist
-async function initializeVisitorCount() {
-  try {
-    const { data, error } = await supabase
-      .from(VISITOR_COUNT_TABLE)
-      .select('count')
-      .eq('site_id', SITE_ID)
-      .single()
-    console.log('initializeVisitorCount: select', { data, error })
-    if (error && error.code === 'PGRST116') {
-      // Record doesn't exist, create it
-      const { error: insertError } = await supabase
-        .from(VISITOR_COUNT_TABLE)
-        .insert({ site_id: SITE_ID, count: 0, created_at: new Date().toISOString() })
-      console.log('initializeVisitorCount: insert', { insertError })
-      if (insertError) {
-        console.error('Error creating visitor count record:', insertError)
-        return 0
-      }
-      return 0
-    }
-
-    if (error) {
-      console.error('Error fetching visitor count:', error)
-      return 0
-    }
-
-    return data?.count || 0
-  } catch (error) {
-    console.error('Error in initializeVisitorCount:', error)
-    return 0
-  }
-}
+const KEY = 'visitor_count'
 
 export async function GET() {
-  try {
-    const count = await initializeVisitorCount()
-    console.log('GET visitor count:', count)
-    return NextResponse.json({ 
-      count: count,
-      persistent: true,
-      unlimited: true
-    })
-  } catch (error) {
-    console.error('Error reading visitor count:', error)
-    return NextResponse.json({ count: 0, error: 'Database error', details: error }, { status: 500 })
-  }
+  const count = (await kv.get<number>(KEY)) || 0
+  return NextResponse.json({ count })
 }
 
 export async function POST() {
-  try {
-    // Always use manual increment for clarity
-    const currentCount = await initializeVisitorCount()
-    console.log('POST: currentCount before increment:', currentCount)
-    const { data, error } = await supabase
-      .from(VISITOR_COUNT_TABLE)
-      .update({ 
-        count: currentCount + 1,
-        updated_at: new Date().toISOString()
-      })
-      .eq('site_id', SITE_ID)
-      .select('count')
-      .single()
-    console.log('POST: update result', { data, error })
-    if (error) {
-      console.error('Error updating visitor count:', error)
-      return NextResponse.json({ count: currentCount, error: 'Update failed', details: error }, { status: 500 })
-    }
-    console.log('POST: updated count:', data?.count)
-    return NextResponse.json({ 
-      count: data?.count || currentCount + 1,
-      persistent: true,
-      unlimited: true
-    })
-  } catch (error) {
-    console.error('Error in manual increment:', error)
-    return NextResponse.json({ count: 0, error: 'Database error', details: error }, { status: 500 })
-  }
+  const count = await kv.incr(KEY)
+  return NextResponse.json({ count })
 } 
