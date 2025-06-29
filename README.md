@@ -16,6 +16,7 @@ https://github.com/user-attachments/assets/25fa228b-7452-40bb-9d49-7caf680b09b6
 - **Company-specific coding questions**
 - **HR interview round** with instant AI feedback
 - **Flashcards** for quick review
+- **Live visitor counter** with real-time tracking
 - **Live clock** and beautiful, minimal UI
 - **Dark & Light mode** (fully theme-adaptive)
 - **Mobile-first, responsive design**

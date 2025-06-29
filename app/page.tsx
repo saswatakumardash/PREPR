@@ -1,11 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, lazy, Suspense } from "react"
 import { ThemeProvider } from "@/contexts/theme-context"
-import { CodingRound } from "@/components/coding-round"
-import { HRRound } from "@/components/hr-round"
-import { Flashcards } from "@/components/flashcards"
-import { SessionSummary } from "@/components/session-summary"
 import { LoginPage } from "@/components/auth/login-page"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { SessionData, HRQuestion } from "@/types"
@@ -14,6 +10,19 @@ import { Footer } from "@/components/footer"
 import { CreatorModal } from "@/components/creator-modal"
 import { Loading } from "@/components/loading"
 import { useSession, signOut } from "next-auth/react"
+
+// Lazy load heavy components
+const CodingRound = lazy(() => import("@/components/coding-round").then(mod => ({ default: mod.CodingRound })))
+const HRRound = lazy(() => import("@/components/hr-round").then(mod => ({ default: mod.HRRound })))
+const Flashcards = lazy(() => import("@/components/flashcards").then(mod => ({ default: mod.Flashcards })))
+const SessionSummary = lazy(() => import("@/components/session-summary").then(mod => ({ default: mod.SessionSummary })))
+
+// Loading component for lazy-loaded components
+const TabLoading = () => (
+  <div className="flex items-center justify-center p-8">
+    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+  </div>
+)
 
 export default function App() {
   const { data: session, status } = useSession();
@@ -114,26 +123,34 @@ export default function App() {
                   </TabsTrigger>
                 </TabsList>
               </div>
-              {/* Tab Content with minimal styling */}
+              {/* Tab Content with lazy loading */}
               <div className="animate-in fade-in-50 duration-300">
                 <TabsContent value="coding" className="mt-0">
                   <div className="bg-white text-black border border-gray-200 rounded-lg p-2 md:p-4 shadow-none dark:bg-neutral-950 dark:text-white dark:border-neutral-800 transition-colors duration-200">
-                    <CodingRound onSessionUpdate={handleCodingSessionUpdate} />
+                    <Suspense fallback={<TabLoading />}>
+                      <CodingRound onSessionUpdate={handleCodingSessionUpdate} />
+                    </Suspense>
                   </div>
                 </TabsContent>
                 <TabsContent value="hr" className="mt-0">
                   <div className="bg-white text-black border border-gray-200 rounded-lg p-2 md:p-4 shadow-none dark:bg-neutral-950 dark:text-white dark:border-neutral-800 transition-colors duration-200">
-                    <HRRound onSessionUpdate={handleHRSessionUpdate} />
+                    <Suspense fallback={<TabLoading />}>
+                      <HRRound onSessionUpdate={handleHRSessionUpdate} />
+                    </Suspense>
                   </div>
                 </TabsContent>
                 <TabsContent value="flashcards" className="mt-0">
                   <div className="bg-white text-black border border-gray-200 rounded-lg p-2 md:p-4 shadow-none dark:bg-neutral-950 dark:text-white dark:border-neutral-800 transition-colors duration-200">
-                    <Flashcards />
+                    <Suspense fallback={<TabLoading />}>
+                      <Flashcards />
+                    </Suspense>
                   </div>
                 </TabsContent>
                 <TabsContent value="summary" className="mt-0">
                   <div className="bg-white text-black border border-gray-200 rounded-lg p-2 md:p-4 shadow-none dark:bg-neutral-950 dark:text-white dark:border-neutral-800 transition-colors duration-200">
-                    <SessionSummary sessionData={sessionData} />
+                    <Suspense fallback={<TabLoading />}>
+                      <SessionSummary sessionData={sessionData} />
+                    </Suspense>
                   </div>
                 </TabsContent>
               </div>

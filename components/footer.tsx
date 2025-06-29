@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import { ExternalLink } from "lucide-react"
+import { VisitorCounter } from "./visitor-counter"
 
 export function Footer() {
   return (
@@ -31,6 +32,10 @@ export function Footer() {
           Visit Portfolio
           <ExternalLink className="h-4 w-4" />
         </a>
+        {/* Visitor Counter */}
+        <div className="flex items-center justify-center">
+          <VisitorCounter className="text-white" />
+        </div>
         {/* Copyright */}
         <div className="text-center w-full border-t border-white/10 pt-4">
           <p className="text-xs text-white/50 font-medium">

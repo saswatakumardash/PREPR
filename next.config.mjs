@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   experimental: {
     serverComponentsExternalPackages: ['@google/generative-ai'],
   },
-  // Ensure proper SSR handling
+  // Performance optimizations
+  swcMinify: true,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
@@ -22,6 +22,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Performance optimizations
+  poweredByHeader: false,
+  compress: true,
+  generateEtags: false,
 }
 
 export default nextConfig

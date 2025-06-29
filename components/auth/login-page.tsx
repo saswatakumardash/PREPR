@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TypingAnimation } from "../typing-animation"
-import Image from "next/image"
-import { signIn } from "next-auth/react"
+import { VisitorCounter } from "../visitor-counter"
 import { CreatorModal } from "@/components/creator-modal"
 import { ThemeProvider } from "@/contexts/theme-context"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -136,6 +137,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           >
             Visit Portfolio
           </a>
+          {/* Visitor Counter */}
+          <div className="mt-2 pt-2 border-t border-gray-300 dark:border-white/20">
+            <VisitorCounter />
+          </div>
         </div>
         <CreatorModal open={showCreatorModal} onOpenChange={setShowCreatorModal} />
       </div>
