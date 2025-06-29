@@ -27,36 +27,47 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
         const sessionKey = 'visitor_tracked_session'
         const alreadyTracked = sessionStorage.getItem(sessionKey)
         
+        console.log('Visitor counter - already tracked:', alreadyTracked)
+        
         if (alreadyTracked) {
           // Already tracked in this session, just get current count and update live viewers
+          console.log('Getting current count (returning visitor)')
           const response = await fetch('/api/visitor-count', {
             method: 'GET',
           })
           
+          console.log('GET response status:', response.status)
+          
           if (response.ok) {
             const data = await response.json()
+            console.log('GET response data:', data)
             setCount(data.count || 0)
             setActiveViewers(data.activeViewers || 0)
             setIsNewVisitor(false)
           } else {
             // If GET fails, try to get count from fallback
+            console.log('GET failed, trying fallback')
             const fallbackResponse = await fetch('/api/visitor-count-fallback', {
               method: 'GET',
             })
             if (fallbackResponse.ok) {
               const fallbackData = await fallbackResponse.json()
+              console.log('Fallback GET data:', fallbackData)
               setCount(fallbackData.count || 0)
-              setActiveViewers(0)
+              setActiveViewers(fallbackData.activeViewers || 0)
             }
           }
         } else {
           // First visit in this session, increment the count
+          console.log('Incrementing count (new visitor)')
           let incrementResponse = await fetch('/api/visitor-count', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
           })
+
+          console.log('POST response status:', incrementResponse.status)
 
           // If Supabase API fails, use fallback
           if (!incrementResponse.ok) {
@@ -71,6 +82,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
 
           if (incrementResponse.ok) {
             const data = await incrementResponse.json()
+            console.log('POST response data:', data)
             setCount(data.count || 0)
             setActiveViewers(data.activeViewers || 0)
             setIsNewVisitor(true)
@@ -80,11 +92,13 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
             hasTrackedVisit.current = true
           } else {
             // If increment fails, at least try to get current count
+            console.log('POST failed, trying to get current count')
             const getResponse = await fetch('/api/visitor-count', {
               method: 'GET',
             })
             if (getResponse.ok) {
               const data = await getResponse.json()
+              console.log('Fallback GET data:', data)
               setCount(data.count || 0)
               setActiveViewers(data.activeViewers || 0)
             }
@@ -101,6 +115,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
           })
           if (response.ok) {
             const data = await response.json()
+            console.log('Error fallback data:', data)
             setCount(data.count || 0)
             setActiveViewers(data.activeViewers || 0)
           }
@@ -115,6 +130,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
     // Always start heartbeat for live viewer tracking, regardless of new visit
     const startLiveTracking = async () => {
       try {
+        console.log('Starting live tracking')
         // Send initial heartbeat to register as active viewer
         await fetch('/api/visitor-count', {
           method: 'POST',
@@ -175,6 +191,8 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
       }
     }, 30000) // 30 seconds
   }
+
+  console.log('Rendering visitor counter - count:', count, 'activeViewers:', activeViewers)
 
   return (
     <div className={`flex items-center gap-2 text-xs font-medium ${className}`}>
