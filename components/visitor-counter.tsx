@@ -31,7 +31,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
         const alreadyTracked = localStorage.getItem(sessionKey)
         
         if (alreadyTracked) {
-          // Already tracked today, just get current count
+          // Already tracked today, just get current count and update live viewers
           const response = await fetch('/api/visitor-count', {
             method: 'GET',
           })
@@ -87,8 +87,34 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
       }
     }
 
+    // Always start heartbeat for live viewer tracking, regardless of new visit
+    const startLiveTracking = async () => {
+      try {
+        // Send initial heartbeat to register as active viewer
+        await fetch('/api/visitor-count', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'heartbeat'
+          })
+        })
+        
+        // Start regular heartbeat
+        startHeartbeat()
+      } catch (error) {
+        console.error('Error starting live tracking:', error)
+      }
+    }
+
     // Delay the API call slightly to prioritize UI rendering
-    const timer = setTimeout(trackVisit, 100)
+    const timer = setTimeout(async () => {
+      await trackVisit()
+      // Always start live tracking, even for returning visitors
+      await startLiveTracking()
+    }, 100)
+    
     return () => clearTimeout(timer)
   }, [])
 

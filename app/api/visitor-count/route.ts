@@ -87,14 +87,14 @@ export async function POST(request: NextRequest) {
     const { action } = body
 
     if (action === 'heartbeat') {
-      // Update active viewer heartbeat
+      // Update active viewer heartbeat - this happens for all visitors
       const sessionId = generateSessionId()
       await updateActiveViewer(sessionId)
       const activeViewers = await getActiveViewers()
       return NextResponse.json({ activeViewers })
     }
 
-    // Regular visit - increment the count
+    // Regular visit - increment the count (only for new daily visitors)
     const { data, error } = await supabase.rpc('increment_visitor_count', {
       site_id_param: SITE_ID
     })
@@ -144,9 +144,12 @@ async function updateActiveViewer(sessionId: string) {
   try {
     await supabase
       .from(ACTIVE_VIEWERS_TABLE)
-      .update({ last_seen: new Date().toISOString() })
-      .eq('session_id', sessionId)
-      .eq('site_id', SITE_ID)
+      .upsert({
+        session_id: sessionId,
+        site_id: SITE_ID,
+        last_seen: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      })
   } catch (error) {
     console.error('Error updating active viewer:', error)
   }
