@@ -12,13 +12,13 @@ async function initializeVisitorCount() {
       .select('count')
       .eq('site_id', SITE_ID)
       .single()
-
+    console.log('initializeVisitorCount: select', { data, error })
     if (error && error.code === 'PGRST116') {
       // Record doesn't exist, create it
       const { error: insertError } = await supabase
         .from(VISITOR_COUNT_TABLE)
         .insert({ site_id: SITE_ID, count: 0, created_at: new Date().toISOString() })
-      
+      console.log('initializeVisitorCount: insert', { insertError })
       if (insertError) {
         console.error('Error creating visitor count record:', insertError)
         return 0
@@ -41,7 +41,7 @@ async function initializeVisitorCount() {
 export async function GET() {
   try {
     const count = await initializeVisitorCount()
-    
+    console.log('GET visitor count:', count)
     return NextResponse.json({ 
       count: count,
       persistent: true,
@@ -49,41 +49,15 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error reading visitor count:', error)
-    return NextResponse.json({ count: 0, error: 'Database error' }, { status: 500 })
+    return NextResponse.json({ count: 0, error: 'Database error', details: error }, { status: 500 })
   }
 }
 
 export async function POST() {
   try {
-    // Try RPC function first
-    const { data, error } = await supabase.rpc('increment_visitor_count', {
-      site_id_param: SITE_ID
-    })
-
-    if (error) {
-      console.log('RPC function failed, using manual increment:', error.message)
-      // Fallback to manual increment
-      return await manualIncrement()
-    }
-
-    return NextResponse.json({ 
-      count: data || 0,
-      persistent: true,
-      unlimited: true
-    })
-  } catch (error) {
-    console.error('Error incrementing visitor count:', error)
-    return await manualIncrement()
-  }
-}
-
-// Manual increment fallback
-async function manualIncrement() {
-  try {
-    // Get current count
+    // Always use manual increment for clarity
     const currentCount = await initializeVisitorCount()
-    
-    // Increment and update
+    console.log('POST: currentCount before increment:', currentCount)
     const { data, error } = await supabase
       .from(VISITOR_COUNT_TABLE)
       .update({ 
@@ -93,12 +67,12 @@ async function manualIncrement() {
       .eq('site_id', SITE_ID)
       .select('count')
       .single()
-
+    console.log('POST: update result', { data, error })
     if (error) {
       console.error('Error updating visitor count:', error)
-      return NextResponse.json({ count: currentCount, error: 'Update failed' }, { status: 500 })
+      return NextResponse.json({ count: currentCount, error: 'Update failed', details: error }, { status: 500 })
     }
-
+    console.log('POST: updated count:', data?.count)
     return NextResponse.json({ 
       count: data?.count || currentCount + 1,
       persistent: true,
@@ -106,6 +80,6 @@ async function manualIncrement() {
     })
   } catch (error) {
     console.error('Error in manual increment:', error)
-    return NextResponse.json({ count: 0, error: 'Database error' }, { status: 500 })
+    return NextResponse.json({ count: 0, error: 'Database error', details: error }, { status: 500 })
   }
 } 
