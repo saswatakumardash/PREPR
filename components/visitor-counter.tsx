@@ -16,7 +16,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
       try {
         setIsLoading(true)
         
-        // Get current count
+        // Get current count from Supabase
         const response = await fetch('/api/visitor-count', {
           method: 'GET',
         })
@@ -24,15 +24,6 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
         if (response.ok) {
           const data = await response.json()
           setCount(data.count || 0)
-        } else {
-          // Try fallback
-          const fallbackResponse = await fetch('/api/visitor-count-fallback', {
-            method: 'GET',
-          })
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json()
-            setCount(fallbackData.count || 0)
-          }
         }
       } catch (error) {
         console.error('Error fetching visitor count:', error)
@@ -56,18 +47,6 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
       if (response.ok) {
         const data = await response.json()
         setCount(data.count || 0)
-      } else {
-        // Try fallback
-        const fallbackResponse = await fetch('/api/visitor-count-fallback', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        if (fallbackResponse.ok) {
-          const fallbackData = await fallbackResponse.json()
-          setCount(fallbackData.count || 0)
-        }
       }
     } catch (error) {
       console.error('Error incrementing visitor count:', error)

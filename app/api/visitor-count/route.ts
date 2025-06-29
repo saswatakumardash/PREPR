@@ -61,9 +61,8 @@ export async function POST() {
     })
 
     if (error) {
-      // If RPC function doesn't exist, fallback to manual increment
-      console.log('RPC function not found, using fallback method')
-      return await fallbackIncrement()
+      console.error('Error with RPC function:', error)
+      return NextResponse.json({ error: 'Database function not available' }, { status: 500 })
     }
 
     return NextResponse.json({ 
@@ -73,39 +72,6 @@ export async function POST() {
     })
   } catch (error) {
     console.error('Error incrementing visitor count:', error)
-    return await fallbackIncrement()
-  }
-}
-
-// Fallback method if RPC function is not available
-async function fallbackIncrement() {
-  try {
-    // Get current count
-    const currentCount = await initializeVisitorCount()
-    
-    // Increment and update
-    const { data, error } = await supabase
-      .from(VISITOR_COUNT_TABLE)
-      .update({ 
-        count: currentCount + 1,
-        updated_at: new Date().toISOString()
-      })
-      .eq('site_id', SITE_ID)
-      .select('count')
-      .single()
-
-    if (error) {
-      console.error('Error updating visitor count:', error)
-      return NextResponse.json({ count: currentCount, error: 'Update failed' }, { status: 500 })
-    }
-
-    return NextResponse.json({ 
-      count: data?.count || currentCount + 1,
-      persistent: true,
-      unlimited: true
-    })
-  } catch (error) {
-    console.error('Error in fallback increment:', error)
-    return NextResponse.json({ count: 0, error: 'Database error' }, { status: 500 })
+    return NextResponse.json({ error: 'Database error' }, { status: 500 })
   }
 } 
