@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Users, Eye } from "lucide-react"
 
 interface VisitorCounterProps {
@@ -9,13 +9,17 @@ interface VisitorCounterProps {
 
 export function VisitorCounter({ className = "" }: VisitorCounterProps) {
   const [count, setCount] = useState<number | null>(null)
+  const [activeViewers, setActiveViewers] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [note, setNote] = useState<string | null>(null)
+  const [isNewVisitor, setIsNewVisitor] = useState<boolean | null>(null)
+  const heartbeatInterval = useRef<NodeJS.Timeout | null>(null)
+  const sessionId = useRef<string | null>(null)
 
   useEffect(() => {
     // Show a fallback count immediately for better UX
     setCount(0)
+    setActiveViewers(0)
     
     const trackVisit = async () => {
       try {
@@ -44,8 +48,12 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
         if (incrementResponse.ok) {
           const data = await incrementResponse.json()
           setCount(data.count)
-          if (data.note) {
-            setNote(data.note)
+          setActiveViewers(data.activeViewers || 0)
+          setIsNewVisitor(data.newVisitor || false)
+          
+          // Start heartbeat for active viewer tracking
+          if (data.newVisitor || data.activeViewers !== undefined) {
+            startHeartbeat()
           }
         } else {
           setError('Failed to load visitor count')
@@ -63,6 +71,40 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
     return () => clearTimeout(timer)
   }, [])
 
+  // Cleanup heartbeat on unmount
+  useEffect(() => {
+    return () => {
+      if (heartbeatInterval.current) {
+        clearInterval(heartbeatInterval.current)
+      }
+    }
+  }, [])
+
+  const startHeartbeat = () => {
+    // Send heartbeat every 30 seconds to keep track of active viewers
+    heartbeatInterval.current = setInterval(async () => {
+      try {
+        const response = await fetch('/api/visitor-count', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'heartbeat',
+            sessionId: sessionId.current
+          })
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setActiveViewers(data.activeViewers || 0)
+        }
+      } catch (error) {
+        console.error('Heartbeat error:', error)
+      }
+    }, 30000) // 30 seconds
+  }
+
   if (error || count === null) {
     return null;
   }
@@ -76,8 +118,26 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
       <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
         {count?.toLocaleString() || '0'}
       </span>
+      
+      {activeViewers !== null && activeViewers > 0 && (
+        <>
+          <div className="flex items-center gap-1 ml-2">
+            <Eye className="w-3 h-3 text-green-600 dark:text-green-400" />
+            <span className="text-gray-700 dark:text-white/70">Live:</span>
+          </div>
+          <span className="font-mono font-bold text-green-600 dark:text-green-400">
+            {activeViewers}
+          </span>
+        </>
+      )}
+      
       {isLoading && (
         <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin ml-1" />
+      )}
+      {isNewVisitor && (
+        <span className="text-xs text-green-600 dark:text-green-400 ml-1">
+          (New!)
+        </span>
       )}
     </div>
   )
