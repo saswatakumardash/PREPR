@@ -14,7 +14,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
   const [error, setError] = useState<string | null>(null)
   const [isNewVisitor, setIsNewVisitor] = useState<boolean | null>(null)
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null)
-  const sessionId = useRef<string | null>(null)
+  const hasTrackedVisit = useRef<boolean>(false)
 
   useEffect(() => {
     // Show a fallback count immediately for better UX
@@ -26,37 +26,58 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
         setIsLoading(true)
         setError(null)
         
-        // Try the robust Supabase API first, fallback to simple counter
-        let incrementResponse = await fetch('/api/visitor-count', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-
-        // If Supabase API fails, use fallback
-        if (!incrementResponse.ok) {
-          console.log('Supabase API not available, using fallback')
-          incrementResponse = await fetch('/api/visitor-count-fallback', {
+        // Check if we've already tracked this visit in this session
+        const sessionKey = 'visitor_tracked_' + new Date().toDateString()
+        const alreadyTracked = localStorage.getItem(sessionKey)
+        
+        if (alreadyTracked) {
+          // Already tracked today, just get current count
+          const response = await fetch('/api/visitor-count', {
+            method: 'GET',
+          })
+          
+          if (response.ok) {
+            const data = await response.json()
+            setCount(data.count)
+            setActiveViewers(data.activeViewers || 0)
+            setIsNewVisitor(false)
+            startHeartbeat()
+          }
+        } else {
+          // First visit today, increment the count
+          let incrementResponse = await fetch('/api/visitor-count', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
           })
-        }
 
-        if (incrementResponse.ok) {
-          const data = await incrementResponse.json()
-          setCount(data.count)
-          setActiveViewers(data.activeViewers || 0)
-          setIsNewVisitor(data.newVisitor || false)
-          
-          // Start heartbeat for active viewer tracking
-          if (data.newVisitor || data.activeViewers !== undefined) {
-            startHeartbeat()
+          // If Supabase API fails, use fallback
+          if (!incrementResponse.ok) {
+            console.log('Supabase API not available, using fallback')
+            incrementResponse = await fetch('/api/visitor-count-fallback', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
           }
-        } else {
-          setError('Failed to load visitor count')
+
+          if (incrementResponse.ok) {
+            const data = await incrementResponse.json()
+            setCount(data.count)
+            setActiveViewers(data.activeViewers || 0)
+            setIsNewVisitor(true)
+            
+            // Mark as tracked for today
+            localStorage.setItem(sessionKey, 'true')
+            hasTrackedVisit.current = true
+            
+            // Start heartbeat for active viewer tracking
+            startHeartbeat()
+          } else {
+            setError('Failed to load visitor count')
+          }
         }
       } catch (err) {
         console.error('Error tracking visit:', err)
@@ -90,8 +111,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            action: 'heartbeat',
-            sessionId: sessionId.current
+            action: 'heartbeat'
           })
         })
 

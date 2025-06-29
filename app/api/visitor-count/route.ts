@@ -84,69 +84,39 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { action, sessionId } = body
+    const { action } = body
 
     if (action === 'heartbeat') {
       // Update active viewer heartbeat
+      const sessionId = generateSessionId()
       await updateActiveViewer(sessionId)
       const activeViewers = await getActiveViewers()
       return NextResponse.json({ activeViewers })
     }
 
-    // Check if this is a new visitor by looking for a session cookie
-    const cookieSessionId = request.cookies.get('visitor_session')?.value
-    
-    if (!cookieSessionId) {
-      // This is a new visitor, increment the count
-      const { data, error } = await supabase.rpc('increment_visitor_count', {
-        site_id_param: SITE_ID
-      })
+    // Regular visit - increment the count
+    const { data, error } = await supabase.rpc('increment_visitor_count', {
+      site_id_param: SITE_ID
+    })
 
-      if (error) {
-        // If RPC function doesn't exist, fallback to manual increment
-        console.log('RPC function not found, using fallback method')
-        return await fallbackIncrement()
-      }
-
-      // Create response with session cookie
-      const response = NextResponse.json({ 
-        count: data || 0,
-        persistent: true,
-        unlimited: true,
-        newVisitor: true
-      })
-
-      // Set a session cookie that expires in 24 hours
-      const newSessionId = generateSessionId()
-      response.cookies.set('visitor_session', newSessionId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 24 * 60 * 60 // 24 hours
-      })
-
-      // Add to active viewers
-      await addActiveViewer(newSessionId)
-
-      return response
-    } else {
-      // Returning visitor, just return current count without incrementing
-      const [count, activeViewers] = await Promise.all([
-        initializeVisitorCount(),
-        getActiveViewers()
-      ])
-      
-      // Update active viewer heartbeat
-      await updateActiveViewer(cookieSessionId)
-      
-      return NextResponse.json({ 
-        count,
-        activeViewers,
-        persistent: true,
-        unlimited: true,
-        newVisitor: false
-      })
+    if (error) {
+      // If RPC function doesn't exist, fallback to manual increment
+      console.log('RPC function not found, using fallback method')
+      return await fallbackIncrement()
     }
+
+    // Add to active viewers
+    const sessionId = generateSessionId()
+    await addActiveViewer(sessionId)
+
+    const activeViewers = await getActiveViewers()
+
+    return NextResponse.json({ 
+      count: data || 0,
+      activeViewers,
+      persistent: true,
+      unlimited: true
+    })
   } catch (error) {
     console.error('Error handling visitor count:', error)
     return await fallbackIncrement()

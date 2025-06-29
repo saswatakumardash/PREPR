@@ -1,7 +1,7 @@
 -- Supabase Database Setup for Unlimited Visitor Count
 -- Run this in your Supabase SQL Editor
 
--- Create the visitor_counts table
+-- Create the visitor_counts table first
 CREATE TABLE IF NOT EXISTS visitor_counts (
     id SERIAL PRIMARY KEY,
     site_id VARCHAR(255) NOT NULL UNIQUE,
@@ -19,6 +19,10 @@ CREATE TABLE IF NOT EXISTS active_viewers (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(session_id, site_id)
 );
+
+-- Now drop existing policies if they exist (after tables are created)
+DROP POLICY IF EXISTS "Allow all operations for visitor counts" ON visitor_counts;
+DROP POLICY IF EXISTS "Allow all operations for active viewers" ON active_viewers;
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_visitor_counts_site_id ON visitor_counts(site_id);
@@ -49,9 +53,13 @@ $$;
 
 -- Enable Row Level Security (RLS) for security
 ALTER TABLE visitor_counts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE active_viewers ENABLE ROW LEVEL SECURITY;
 
--- Create a policy that allows all operations (for visitor counting)
+-- Create policies that allow all operations (for visitor counting)
 CREATE POLICY "Allow all operations for visitor counts" ON visitor_counts
+    FOR ALL USING (true);
+
+CREATE POLICY "Allow all operations for active viewers" ON active_viewers
     FOR ALL USING (true);
 
 -- Insert initial record for your site
@@ -62,6 +70,7 @@ ON CONFLICT (site_id) DO NOTHING;
 -- Grant necessary permissions
 GRANT USAGE ON SCHEMA public TO anon;
 GRANT ALL ON visitor_counts TO anon;
+GRANT ALL ON active_viewers TO anon;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon;
 
 -- Create a function to clean up old active viewers (optional)
