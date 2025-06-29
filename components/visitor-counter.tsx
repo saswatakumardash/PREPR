@@ -26,12 +26,13 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
         setIsLoading(true)
         setError(null)
         
-        // Check if we've already tracked this visit in this session
-        const sessionKey = 'visitor_tracked_' + new Date().toDateString()
-        const alreadyTracked = localStorage.getItem(sessionKey)
+        // Check if we've already tracked this visit in this browser session
+        // sessionStorage only lasts for the current browser session (tab/window)
+        const sessionKey = 'visitor_tracked_session'
+        const alreadyTracked = sessionStorage.getItem(sessionKey)
         
         if (alreadyTracked) {
-          // Already tracked today, just get current count and update live viewers
+          // Already tracked in this session, just get current count and update live viewers
           const response = await fetch('/api/visitor-count', {
             method: 'GET',
           })
@@ -44,7 +45,7 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
             startHeartbeat()
           }
         } else {
-          // First visit today, increment the count
+          // First visit in this session, increment the count
           let incrementResponse = await fetch('/api/visitor-count', {
             method: 'POST',
             headers: {
@@ -69,8 +70,8 @@ export function VisitorCounter({ className = "" }: VisitorCounterProps) {
             setActiveViewers(data.activeViewers || 0)
             setIsNewVisitor(true)
             
-            // Mark as tracked for today
-            localStorage.setItem(sessionKey, 'true')
+            // Mark as tracked for this browser session
+            sessionStorage.setItem(sessionKey, 'true')
             hasTrackedVisit.current = true
             
             // Start heartbeat for active viewer tracking
