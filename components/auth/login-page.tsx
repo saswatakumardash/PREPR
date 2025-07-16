@@ -75,8 +75,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             <ThemeToggle />
             <LiveClock />
           </div>
-          {/* 3D Effect above card (desktop only) */}
-          <div className="hidden md:block w-full max-w-md mx-auto mb-2">
+          {/* 3D Effect above card - responsive */}
+          <div className="w-full max-w-md mx-auto mb-2">
             <Login3DEffect height={220} />
           </div>
           {/* Logo below 3D effect */}

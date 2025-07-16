@@ -51,11 +51,28 @@ function RealisticBlackHole() {
 export default function Login3DEffect({ height = 220 }) {
   return (
     <div style={{ width: '100%', height, position: 'relative', background: 'transparent' }}>
-      <Canvas camera={{ position: [0, 0, 3.5], fov: 50 }} style={{ width: '100%', height: '100%', background: 'transparent' }}>
+      <Canvas 
+        camera={{ position: [0, 0, 3.5], fov: 50 }} 
+        style={{ width: '100%', height: '100%', background: 'transparent' }}
+        gl={{ 
+          antialias: false,
+          powerPreference: "high-performance",
+          alpha: true 
+        }}
+      >
         <RealisticBlackHole />
         <ambientLight intensity={25.0} />
         <pointLight position={[0, 0, 5]} intensity={0.0} color="#b3caff" />
-        <OrbitControls enablePan={false} enableZoom={false} enableRotate autoRotate autoRotateSpeed={0.7} />
+        <OrbitControls 
+          enablePan={false} 
+          enableZoom={false} 
+          enableRotate={true}
+          autoRotate 
+          autoRotateSpeed={0.7}
+          enableDamping={true}
+          dampingFactor={0.05}
+          rotateSpeed={0.5}
+        />
       </Canvas>
     </div>
   );
